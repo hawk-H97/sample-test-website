@@ -17,8 +17,8 @@ jobs:
       env:
         EC2_USER: ubuntu
         EC2_HOST: 35.154.70.151
-        KEY_PATH: "/home/sing/Videos/skylena_projects.pem"
+        EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
       run: |
-        ssh -i ${{ env.KEY_PATH }} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo rm /var/www/html/index.nginx-debian.html'
-        scp -i ${{ env.KEY_PATH }} index.html ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/var/www/html/index.html
-        ssh -i ${{ env.KEY_PATH }} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo systemctl restart nginx'
+        ssh -i ${{ env. EC2_SSH_KEY}} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo rm /var/www/html/index.nginx-debian.html'
+        scp -i ${{ env.EC2_SSH_KEY }} index.html ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/var/www/html/index.html
+        ssh -i ${{ env.EC2_SSH_KEY }} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo systemctl restart nginx'
