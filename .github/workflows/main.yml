@@ -1,5 +1,6 @@
-name: Deploy to Nginx
+name: Push-to-EC2
 
+# Trigger deployment only on push to main branch
 on:
   push:
     branches:
@@ -7,18 +8,31 @@ on:
 
 jobs:
   deploy:
+    name: Deploy to EC2 on master branch push
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout the files
+        uses: actions/checkout@v2
 
-    - name: Deploy to EC2
-      env:
-        EC2_USER: ubuntu
-        EC2_HOST: ec2-18-134-245-65.eu-west-2.compute.amazonaws.com
-        EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-      run: |
-        ssh -i ${{ env. EC2_SSH_KEY}} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo rm /var/www/html/index.nginx-debian.html'
-        scp -i ${{ env.EC2_SSH_KEY }} index.html ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/var/www/html/index.html
-        ssh -i ${{ env.EC2_SSH_KEY }} ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'sudo systemctl restart nginx'
+      - name: Deploy to Server 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+
+      - name: Executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt-get -y update
+            sudo apt-get install -y nginx
+            sudo systemctl start nginx
+            sudo systemctl enable nginx
+            cd home
+            sudo mv * /var/www/html
